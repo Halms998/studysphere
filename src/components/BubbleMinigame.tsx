@@ -57,6 +57,8 @@ export default function BubbleMinigame({ onClose, onComplete, questions, count =
   const timeoutRef = useRef<number | null>(null);
   const advanceCalledRef = useRef(false);
   const [apiReloadCounter, setApiReloadCounter] = useState(0);
+  const bubbleAreaRef = useRef<HTMLDivElement | null>(null);
+  const [confetti, setConfetti] = useState<Array<{ id: string; left: number; top: number; bg: string; delay: number }>>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -246,6 +248,42 @@ export default function BubbleMinigame({ onClose, onComplete, questions, count =
     }
   }
 
+  function handleBubbleClick(e: React.MouseEvent, i: number, optionId?: string) {
+    try {
+      // spawn confetti at click position relative to bubble area
+      const btn = e.currentTarget as HTMLElement;
+      const rect = btn.getBoundingClientRect();
+      const area = bubbleAreaRef.current;
+      if (area) {
+        const areaRect = area.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2 - areaRect.left;
+        const centerY = rect.top + rect.height / 2 - areaRect.top;
+        spawnConfetti(centerX, centerY);
+      }
+    } catch (err) {
+      // ignore confetti errors
+    }
+    // forward to normal advance without changing logic
+    advance(mode === 'local' ? { optionIndex: i } : { optionId: optionId, optionIndex: i });
+  }
+
+  function spawnConfetti(x: number, y: number) {
+    const colors = ['#f97316', '#f43f5e', '#fb7185', '#60a5fa', '#34d399', '#f59e0b'];
+    const pieces = Array.from({ length: 12 }).map((_, idx) => {
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${idx}`;
+      const left = `${x + (Math.random() - 0.5) * 40}px`;
+      const top = `${y + (Math.random() - 0.5) * 20}px`;
+      const bg = colors[Math.floor(Math.random() * colors.length)];
+      const delay = Math.round(Math.random() * 120);
+      return { id, left, top, bg, delay };
+    });
+    setConfetti((c) => c.concat(pieces));
+    // remove them after animation
+    window.setTimeout(() => {
+      setConfetti((c) => c.filter(p => !pieces.find(pi => pi.id === p.id)));
+    }, 1100);
+  }
+
   async function finishApi() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -346,7 +384,7 @@ export default function BubbleMinigame({ onClose, onComplete, questions, count =
 
         <div className="mb-4">
           <div className="text-lg font-medium mb-2">{mode === 'local' ? currentLocal?.question : currentApi?.question_text || 'Loading question...'}</div>
-          <div className="relative h-64 w-full border border-dashed rounded overflow-hidden">
+            <div ref={bubbleAreaRef} className="relative h-64 w-full border border-dashed rounded overflow-hidden">
             {/* render bubbles */}
             {bubbleLayout && (mode === 'local' ? currentLocal?.options || [] : (currentApi?.options || []).map((o) => o.option_text)).map((text: any, i: number) => {
               const layout = bubbleLayout[i] || { left: 10 + i * 20, duration: timePerQuestion };
@@ -356,15 +394,19 @@ export default function BubbleMinigame({ onClose, onComplete, questions, count =
               return (
                 <button
                   key={key}
-                  onClick={() => advance(mode === 'local' ? { optionIndex: i } : { optionId: optionId, optionIndex: i })}
+                  onClick={(e) => handleBubbleClick(e, i, optionId)}
                   disabled={isBusy}
-                  className={`absolute rounded-full px-4 py-2 border shadow text-sm ${isPopped ? 'bg-green-200' : 'bg-blue-100 hover:bg-blue-200'}`}
-                  style={{ left: `${layout.left}%`, top: -40, transform: isPopped ? 'scale(1.05)' : 'translateY(0)', animation: (isPopped || finishedResults || isSubmitting) ? 'none' : `fall ${layout.duration}s linear forwards`, pointerEvents: (isBusy || !!finishedResults || isSubmitting) ? 'none' : 'auto' }}
+                  className={`absolute bubble-btn ${isPopped ? 'bubble-popped' : 'bubble-normal'}`}
+                  style={{ left: `${layout.left}%`, top: -40, transform: isPopped ? 'scale(1.08)' : 'translateY(0)', animation: (isPopped || finishedResults || isSubmitting) ? 'none' : `fall ${layout.duration}s linear forwards`, pointerEvents: (isBusy || !!finishedResults || isSubmitting) ? 'none' : 'auto' }}
                 >
-                  {text}
+                  <span className="bubble-label">{text}</span>
                 </button>
               );
             })}
+            {/** confetti pieces rendered above bubbles */}
+            {confetti.map(c => (
+              <span key={c.id} className="confetti" style={{ left: c.left, top: c.top, background: c.bg, animationDelay: `${c.delay}ms` }} />
+            ))}
           </div>
         </div>
 
@@ -424,6 +466,19 @@ export default function BubbleMinigame({ onClose, onComplete, questions, count =
         @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .overlay-animate { animation: fadeUp 280ms ease-out both; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* Bubble visual styles (purely visual - no timing logic changes) */
+        .bubble-btn { position: absolute; border: none; padding: 0.5rem 1rem; border-radius: 9999px; color: white; font-weight: 600; cursor: pointer; box-shadow: 0 10px 22px rgba(16,24,40,0.12); text-shadow: 0 1px 0 rgba(0,0,0,0.12); will-change: transform; transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease; display: inline-flex; align-items: center; justify-content: center; }
+        .bubble-normal { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); }
+        .bubble-normal:hover { transform: translateY(4px) scale(1.02); box-shadow: 0 14px 30px rgba(16,24,40,0.18); }
+        .bubble-popped { background: linear-gradient(135deg, #34d399 0%, #10b981 100%); box-shadow: 0 8px 18px rgba(16,24,40,0.18); }
+        .bubble-label { padding-left: 0.25rem; padding-right: 0.25rem; white-space: nowrap; }
+        /* gentle shimmer highlight using pseudo-element */
+        .bubble-btn::before { content: ''; position: absolute; inset: 0; border-radius: 9999px; background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0)); mix-blend-mode: overlay; pointer-events: none; }
+        /* pop feedback when clicked relies on inline transform; provide a smooth transition */
+        .bubble-popped, .bubble-btn { transition: transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms ease; }
+        /* confetti pieces */
+        .confetti { position: absolute; width: 8px; height: 12px; border-radius: 2px; transform-origin: center; animation: confetti-fall 1000ms cubic-bezier(.17,.67,.34,1) forwards; box-shadow: 0 6px 10px rgba(0,0,0,0.12); }
+        @keyframes confetti-fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(160px) rotate(540deg) translateX(20px); opacity: 0; } }
       `}</style>
 
       

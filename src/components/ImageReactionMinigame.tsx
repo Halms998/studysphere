@@ -61,7 +61,7 @@ export default function ImageReactionMinigame({ onClose, onComplete, categories:
   const timerRef = useRef<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const processGuardRef = useRef(false);
-  const [results, setResults] = useState<{ qId: string; selected?: string | null; correct?: boolean; rtMs?: number }[]>([]);
+  const [results, setResults] = useState<{ qId: string; selected?: string | null; correct?: boolean }[]>([]);
   const startRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -120,15 +120,14 @@ export default function ImageReactionMinigame({ onClose, onComplete, categories:
     const q = questions[currentIndex];
     const rt = startRef.current ? Date.now() - startRef.current : undefined;
     const picked = optionId;
-    const correctOpt = q.options.find(o => o.isCorrect);
-    const correctId = correctOpt?.id;
     const correct = picked ? q.options.find(o => o.id === picked)?.isCorrect === true : false;
-    setResults(prev => [...prev, { qId: q.id, selected: picked, correct, rtMs: rt }]);
 
-    // show feedback for a short moment
+    // single-attempt result record (no reaction-time UI stored)
+    setResults(prev => [...prev, { qId: q.id, selected: picked, correct }]);
+
+    // show feedback briefly
     await new Promise(resolve => setTimeout(resolve, 650));
 
-    // next (use currentIndex from ref to avoid stale React state when called from timer)
     const next = currentIndex + 1;
     if (next < questions.length) {
       setQIndex(next);
@@ -164,10 +163,8 @@ export default function ImageReactionMinigame({ onClose, onComplete, categories:
     startCategory(selectedCategory);
   }
 
-  const correctRts = results.filter(r => r.correct && typeof r.rtMs === 'number').map(r => r.rtMs as number);
-  const avgRtMs = correctRts.length ? Math.round(correctRts.reduce((s, v) => s + v, 0) / correctRts.length) : 0;
   const correctCount = results.filter(r => r.correct).length;
-  const avgRtDisplay = correctRts.length ? `${(avgRtMs / 1000).toFixed(2)}s` : '—';
+  const avgRtDisplay = '—';
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -178,13 +175,25 @@ export default function ImageReactionMinigame({ onClose, onComplete, categories:
             <div className="text-sm text-gray-600">Quick visual match rounds to wake up your focus</div>
           </div>
           <div className="text-right flex flex-col items-end space-y-2">
-            <div className="text-sm text-gray-500">Per question</div>
-            <div className="flex items-center space-x-3">
-              <div className="text-xl font-semibold">{timeLeft}s</div>
-              {step === 'play' && (
-                <button onClick={handleCloseDuringPlay} aria-label="Close game" className="w-9 h-9 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 text-white border border-red-700">×</button>
-              )}
-            </div>
+                <div className="text-sm text-gray-500">Per question</div>
+                <div className="flex items-center space-x-3">
+                  <svg viewBox="0 0 36 36" className="w-9 h-9">
+                    <circle cx="18" cy="18" r="15" className="text-gray-200" strokeWidth="4" fill="none" stroke="currentColor" />
+                    {/* dynamic ring */}
+                    {
+                      (() => {
+                        const radius = 15;
+                        const circ = 2 * Math.PI * radius;
+                        const st = circ * ((timeLeft) / timePerQuestion);
+                        return <circle cx="18" cy="18" r="15" strokeWidth="4" fill="none" stroke="#ef4444" strokeDasharray={`${st} ${Math.max(0, circ - st)}`} strokeLinecap="round" transform="rotate(-90 18 18)" style={{ transition: 'stroke-dasharray 300ms linear' }} />;
+                      })()
+                    }
+                  </svg>
+                  <div className="text-xl font-semibold tabular-nums">{timeLeft}s</div>
+                  {step === 'play' && (
+                    <button onClick={handleCloseDuringPlay} aria-label="Close game" className="w-9 h-9 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 text-white border border-red-700">×</button>
+                  )}
+                </div>
           </div>
         </div>
 
@@ -206,11 +215,15 @@ export default function ImageReactionMinigame({ onClose, onComplete, categories:
           <div>
             <div className="text-lg font-medium mb-2">{questions[qIndex].statement}</div>
             <div className="grid grid-cols-2 gap-3">
-              {questions[qIndex].options.map(opt => (
-                <button key={opt.id} onClick={() => processAnswer(opt.id)} disabled={isProcessing} className={`block p-0 border rounded overflow-hidden ${isProcessing ? 'opacity-70' : 'hover:scale-105'} transition-transform`}>
-                  <img src={opt.image} alt={opt.label || 'option'} style={{ display: 'block', width: '100%', height: 260, objectFit: 'contain', objectPosition: 'center', backgroundColor: '#000' }} />
-                </button>
-              ))}
+              {questions[qIndex].options.map((opt, oi) => {
+                return (
+                  <div key={opt.id} className="relative">
+                    <button onClick={() => processAnswer(opt.id)} disabled={isProcessing} className={`block p-0 border rounded overflow-hidden ${isProcessing ? 'opacity-70' : 'hover:scale-105'} transition-transform`}>
+                      <img src={opt.image} alt={opt.label || 'option'} style={{ display: 'block', width: '100%', height: 260, objectFit: 'contain', objectPosition: 'center', backgroundColor: '#000' }} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
             <div className="mt-4 text-sm text-gray-600">Question {qIndex + 1} / {questions.length}</div>
           </div>
@@ -219,7 +232,7 @@ export default function ImageReactionMinigame({ onClose, onComplete, categories:
         {step === 'results' && (
           <div>
             <h3 className="text-xl font-bold">Results</h3>
-            <div className="text-sm text-gray-600 mb-3">Score: {Math.round((correctCount / questions.length) * 100)} ({correctCount}/{questions.length}) • Avg RT (correct): {avgRtDisplay}</div>
+            <div className="text-sm text-gray-600 mb-3">Score: {Math.round((correctCount / questions.length) * 100)} ({correctCount}/{questions.length})</div>
             <div className="space-y-2 mb-4" style={{ maxHeight: '50vh', overflow: 'auto', paddingRight: 8 }}>
               {results.map((r, i) => {
                 const q = questions.find(qq => qq.id === r.qId);
@@ -229,7 +242,7 @@ export default function ImageReactionMinigame({ onClose, onComplete, categories:
                   <div key={r.qId} className={`p-3 border rounded ${r.correct ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                     <div className="font-medium mb-2">{q?.statement}</div>
                     <div className="text-sm text-gray-700 mb-1"><strong>Correct answer:</strong> {correct?.label || '—'}</div>
-                    <div className="text-sm text-gray-700"><strong>Reaction time:</strong> {r.rtMs ? `${r.rtMs} ms` : '—'}</div>
+                    <div className="text-sm text-gray-700"><strong>Your answer:</strong> {picked?.label || '—'}</div>
                   </div>
                 );
               })}
@@ -240,14 +253,12 @@ export default function ImageReactionMinigame({ onClose, onComplete, categories:
               <button onClick={() => { setStep('select'); }} className="px-4 py-2 bg-gray-200 rounded">Choose category</button>
               <button onClick={() => { if (onClose) onClose(); }} className="px-4 py-2 bg-red-500 text-white rounded">Close</button>
             </div>
-
-            <div className="mt-4">
-              <div className="text-sm text-gray-600">Average reaction (correct only): {avgRtDisplay}</div>
-            </div>
+            
           </div>
         )}
 
       </div>
+      
     </div>
   );
 }

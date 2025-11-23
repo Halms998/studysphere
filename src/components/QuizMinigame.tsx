@@ -321,18 +321,35 @@ export default function QuizMinigame({ onClose, onComplete, questions, count = 5
   const localQ = localShuffled[index];
   const apiQ = apiQuestions ? apiQuestions[index] : null;
 
+  // progress and circular timer values
+  const answered = mode === 'local' ? index : (apiQuestions ? index : index);
+  const total = mode === 'local' ? localShuffled.length : (apiQuestions ? apiQuestions.length : count);
+  const progressPct = total > 0 ? Math.round(((answered) / total) * 100) : 0;
+  const circleRadius = 15;
+  const circumference = 2 * Math.PI * circleRadius;
+  const stroke = circumference * ((timeLeft) / timePerQuestion);
+
   return (
     <div className="max-w-2xl mx-auto p-6">
       <div className="bg-white border-2 border-black rounded-lg p-6 relative">
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="text-2xl font-bold">Quick Quiz</h3>
             <div className="text-sm text-gray-600">{mode === 'api' ? 'Practice course questions' : 'Practice sample questions'}</div>
           </div>
-          <div className="text-right">
+          <div className="text-right flex items-center space-x-3">
             <div className="text-sm text-gray-500">Time</div>
-            <div className="text-xl font-semibold">{timeLeft}s</div>
+            <div className="flex items-center space-x-2">
+              <svg viewBox="0 0 36 36" className="w-9 h-9">
+                <circle cx="18" cy="18" r="15" className="text-gray-200" strokeWidth="4" fill="none" stroke="currentColor" />
+                <circle cx="18" cy="18" r="15" strokeWidth="4" fill="none" stroke="#ef4444" strokeDasharray={`${stroke} ${Math.max(0, circumference - stroke)}`} strokeLinecap="round" transform="rotate(-90 18 18)" style={{ transition: 'stroke-dasharray 300ms linear' }} />
+              </svg>
+              <div className="text-xl font-semibold tabular-nums">{timeLeft}s</div>
+            </div>
           </div>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mb-4">
+          <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
         </div>
 
         {/* Question area */}
@@ -340,15 +357,18 @@ export default function QuizMinigame({ onClose, onComplete, questions, count = 5
           {mode === 'local' && localQ && (
             <>
               <div className="text-lg font-medium mb-2">{localQ.question}</div>
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-1 gap-3">
                 {localQ.options.map((opt, i) => {
                   const isSelected = selectedIndex === i;
                   const isCorrect = showFeedback && i === localQ.answerIndex;
                   const wrongSelected = showFeedback && isSelected && i !== localQ.answerIndex;
-                  const btnClass = isCorrect ? 'bg-green-200 border-green-500' : wrongSelected ? 'bg-red-200 border-red-500' : 'bg-gray-100 hover:bg-gray-200';
+                  const base = 'flex items-center gap-3 p-4 rounded-lg border transition-all text-left';
+                  const btnClass = isCorrect ? `${base} bg-green-50 border-green-300 scale-102` : wrongSelected ? `${base} bg-red-50 border-red-300 animate-shake` : `${base} bg-gray-100 hover:bg-gray-200`;
                   return (
-                    <button key={i} onClick={() => handleSelect(i)} disabled={showFeedback} className={`text-left px-4 py-3 rounded border ${btnClass}`}>
-                      {opt}
+                    <button key={i} onClick={() => handleSelect(i)} disabled={showFeedback} className={btnClass}>
+                      <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center font-bold text-sm">{String.fromCharCode(65 + i)}</div>
+                      <div className="flex-1">{opt}</div>
+                      {isCorrect && <div className="text-sm text-green-600 font-semibold">✓</div>}
                     </button>
                   );
                 })}
@@ -365,8 +385,9 @@ export default function QuizMinigame({ onClose, onComplete, questions, count = 5
               <div className="text-lg font-medium mb-2">{apiQ.question_text}</div>
               <div className="grid grid-cols-1 gap-2">
                 {apiQ.options.map((opt, i) => (
-                  <button key={opt.id} onClick={() => handleSelect(i)} disabled={isSelecting || apiSubmitting} className={`text-left px-4 py-3 rounded border bg-gray-100 hover:bg-gray-200 ${isSelecting || apiSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}>
-                    {opt.option_text}
+                  <button key={opt.id} onClick={() => handleSelect(i)} disabled={isSelecting || apiSubmitting} className={`flex items-center gap-3 p-3 rounded-lg border bg-gray-100 hover:bg-gray-200 ${isSelecting || apiSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-sm">{String.fromCharCode(65 + i)}</div>
+                    <div className="flex-1 text-left">{opt.option_text}</div>
                   </button>
                 ))}
               </div>
@@ -434,6 +455,9 @@ export default function QuizMinigame({ onClose, onComplete, questions, count = 5
       </div>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0); } }
+        .animate-shake { animation: shake 420ms cubic-bezier(.2,.8,.2,1); }
+        .scale-102 { transform: scale(1.02); }
       `}</style>
     </div>
   );

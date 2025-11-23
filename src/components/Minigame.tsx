@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ReactionMinigame from './ReactionMinigame';
+import ReactionTimeMinigame from './ReactionTimeMinigame';
 import QuizMinigame from './QuizMinigame';
 import BubbleMinigame from './BubbleMinigame';
 import ImageReactionMinigame from './ImageReactionMinigame';
@@ -89,10 +89,11 @@ export default function Minigame() {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-2xl bg-white border-2 border-black rounded-lg overflow-auto">
             {active === 'reaction' && (
-              <ReactionMinigame
+              <ReactionTimeMinigame
                 onClose={() => setActive(null)}
-                onComplete={(ms) => {
-                  setLastScore((s) => ({ ...s, reaction: ms }));
+                onComplete={(summary) => {
+                  // store average ms as last score
+                  setLastScore((s) => ({ ...s, reaction: summary.avgMs }));
                 }}
               />
             )}
