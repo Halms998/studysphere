@@ -44,6 +44,7 @@ export default function Header({ studentName }: HeaderProps) {
     { name: 'Discussions', path: '/discussion' },
     { name: 'Study Sessions', path: '/study-sessions' },
     { name: 'Pomodoro', path: '/pomodoro' },
+    { name: 'Minigames', path: '/minigames' },
   ];
 
   const getIconFor = (name: string) => {
@@ -60,6 +61,8 @@ export default function Header({ studentName }: HeaderProps) {
         return <UserGroupIcon className="w-5 h-5 inline-block mr-2" />;
       case 'Pomodoro':
         return <ClockIcon className="w-5 h-5 inline-block mr-2" />;
+      case 'Minigames':
+        return <BookOpenIcon className="w-5 h-5 inline-block mr-2" />;
       default:
         return null;
     }
