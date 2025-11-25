@@ -1,4 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { getBenchmarkMs, benchmarkClass } from '../lib/benchmark';
+import useRandomDelay from '../hooks/useRandomDelay';
+
+// Notes on applied SOLID principles in this component:
+// - DIP (Dependency Inversion): benchmark generation and color mapping were
+//   moved into `src/lib/benchmark.ts` and are used via `getBenchmarkMs` and
+//   `benchmarkClass` so the component no longer creates these low-level
+//   details itself.
+// - SRP (Single Responsibility): the randomized scheduling logic was moved
+//   into `src/hooks/useRandomDelay.ts` so this component focuses on UI and
+//   game flow while the hook handles timing/scheduling responsibilities.
 
 interface Props {
   trials?: number; // number of trials per run
@@ -12,18 +23,9 @@ export default function ReactionTimeMinigame({ trials = 3, onClose, onComplete }
   const [message, setMessage] = useState<string>('');
   const startRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
-  const [benchmarkMs] = useState<number>(() => {
-    // pick a random benchmark between 120ms and 500ms (inclusive)
-    const min = 120;
-    const max = 500;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  });
-
-  function benchmarkClass(ms: number) {
-    if (ms <= 200) return 'bg-green-600 text-white';
-    if (ms <= 350) return 'bg-amber-500 text-white';
-    return 'bg-red-600 text-white';
-  }
+  // DIP usage: benchmark value comes from the benchmark util (higher-level
+  // abstraction) rather than being generated inline here.
+  const [benchmarkMs] = useState<number>(() => getBenchmarkMs(120, 500));
 
   useEffect(() => {
     return () => {
@@ -31,28 +33,26 @@ export default function ReactionTimeMinigame({ trials = 3, onClose, onComplete }
     };
   }, []);
 
+  // SRP usage: scheduling (random delay) is delegated to `useRandomDelay`.
+  // The component simply starts/cancels the delay and responds to the
+  // callback; timing details are the hook's responsibility.
+  const { start: startDelay, cancel: cancelDelay } = useRandomDelay(() => {
+    startRef.current = Date.now();
+    setMessage('CLICK NOW!');
+    setPhase('ready');
+  }, 800, 2200);
+
   function startRun() {
     setAttempts([]);
     setMessage('Get ready...');
     setPhase('waiting');
-    scheduleGo();
-  }
-
-  function scheduleGo() {
-    // random delay between 800ms and 2200ms
-    const delay = 800 + Math.floor(Math.random() * 1400);
-    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-    timeoutRef.current = window.setTimeout(() => {
-      startRef.current = Date.now();
-      setMessage('CLICK NOW!');
-      setPhase('ready');
-    }, delay) as unknown as number;
+    startDelay();
   }
 
   function handleClick() {
     if (phase === 'waiting') {
       // clicked too early
-      if (timeoutRef.current) { window.clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+      cancelDelay();
       setMessage('Too early! That trial will be marked as a miss.');
       setAttempts(prev => [...prev, -1]);
       setPhase('clicked');
@@ -77,7 +77,7 @@ export default function ReactionTimeMinigame({ trials = 3, onClose, onComplete }
       // start next trial
       setMessage('Get ready...');
       setPhase('waiting');
-      scheduleGo();
+      startDelay();
     } else {
       // finish run
       setPhase('results');
