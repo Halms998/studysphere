@@ -1,58 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import FormInput from '@/components/FormInput';
-import { registerSchema } from '@/lib/validators';
+import { useRegister } from '@/hooks/useRegister';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [values, setValues] = useState({ name: '', email: '', password: '' });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setValues((v) => ({ ...v, [e.target.name]: e.target.value }));
-    setErrors({});
-    setServerError(null);
-  }
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setServerError(null);
-    setErrors({});
-    setIsLoading(true);
-
-    const parsed = registerSchema.safeParse(values);
-    if (!parsed.success) {
-      const fieldErrors: Record<string, string> = {};
-      parsed.error.errors.forEach((er) => (fieldErrors[er.path[0] as string] = er.message));
-      setErrors(fieldErrors);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values)
-      });
-
-      if (res.ok) {
-        const { token } = await res.json();
-        localStorage.setItem('supabase_token', token);
-        router.push('/dashboard');
-      } else {
-        const data = await res.json();
-        setServerError(data.error || 'Registration failed');
-      }
-    } catch (error) {
-      setServerError('Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const {
+    values,
+    isLoading,
+    errors,
+    serverError,
+    handleChange,
+    handleRegister,
+  } = useRegister();
 
   return (
     <div style={{
@@ -64,7 +25,6 @@ export default function RegisterPage() {
       padding: '20px',
       position: 'relative'
     }}>
-      {/* Subtle background decoration */}
       <div style={{
         position: 'absolute',
         top: 0,
@@ -86,7 +46,6 @@ export default function RegisterPage() {
           zIndex: 1
         }}
       >
-        {/* Logo/Title */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -111,7 +70,6 @@ export default function RegisterPage() {
           </p>
         </motion.div>
 
-        {/* Register Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -124,7 +82,7 @@ export default function RegisterPage() {
             border: '1px solid rgba(0,0,0,0.05)'
           }}
         >
-          <form onSubmit={onSubmit}>
+          <form onSubmit={handleRegister}>
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -135,9 +93,10 @@ export default function RegisterPage() {
                 name="name"
                 type="text"
                 value={values.name}
-                onChange={onChange}
+                onChange={handleChange}
                 error={errors.name}
                 placeholder="Enter your full name"
+                disabled={isLoading}
               />
             </motion.div>
 
@@ -151,9 +110,10 @@ export default function RegisterPage() {
                 name="email"
                 type="email"
                 value={values.email}
-                onChange={onChange}
+                onChange={handleChange}
                 error={errors.email}
                 placeholder="Enter your email"
+                disabled={isLoading}
               />
             </motion.div>
 
@@ -168,9 +128,10 @@ export default function RegisterPage() {
                 name="password"
                 type="password"
                 value={values.password}
-                onChange={onChange}
+                onChange={handleChange}
                 error={errors.password}
                 placeholder="Create a password"
+                disabled={isLoading}
               />
             </motion.div>
 
@@ -222,7 +183,6 @@ export default function RegisterPage() {
             </motion.button>
           </form>
 
-          {/* Divider */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -239,7 +199,6 @@ export default function RegisterPage() {
             <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
           </motion.div>
 
-          {/* Login link */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -253,6 +212,7 @@ export default function RegisterPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => router.push('/login')}
+              type="button"
               style={{
                 width: '100%',
                 padding: '14px',
