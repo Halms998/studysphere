@@ -1,5 +1,6 @@
 import { NextApiRequest } from 'next';
 import { supabase } from '@/lib/supabaseClient';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export class AuthService {
   static async authenticateRequest(req: NextApiRequest): Promise<string> {
@@ -32,3 +33,16 @@ export class AuthService {
     return session.host_id === userId;
   }
 }
+
+
+// services/SubjectService.ts
+export class SubjectService {
+  async getSubjects() {
+    return supabaseAdmin.from('subjects').select('id,name,description,created_at');
+  }
+
+  async getTopics(subjectIds: string[]) {
+    return supabaseAdmin.from('topics').select('id,name,description,subject_id').in('subject_id', subjectIds);
+  }
+}
+
