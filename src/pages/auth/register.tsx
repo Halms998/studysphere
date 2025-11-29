@@ -211,7 +211,7 @@ export default function RegisterPage() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/login')}
+              onClick={() => router.push('/auth/login')}
               type="button"
               style={{
                 width: '100%',

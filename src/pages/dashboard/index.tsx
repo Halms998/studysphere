@@ -44,7 +44,7 @@ export default function DashboardPage() {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -59,7 +59,7 @@ export default function DashboardPage() {
 
         if (!response.ok) {
           await supabase.auth.signOut();
-          router.push('/login');
+          router.push('/auth/login');
           return;
         }
 
@@ -109,7 +109,7 @@ export default function DashboardPage() {
       } catch (error) {
         console.error('Dashboard fetch error:', error);
         await supabase.auth.signOut();
-        router.push('/login');
+        router.push('/auth/login');
       }
     };
 
@@ -241,7 +241,7 @@ export default function DashboardPage() {
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-black">Recent Questions</h3>
                 <button 
-                  onClick={() => router.push('/discussions')}
+                  onClick={() => router.push('/discussion')}
                   className="text-gray-600 hover:text-black font-semibold text-sm transition"
                 >
                   View All

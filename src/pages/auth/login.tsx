@@ -82,7 +82,7 @@ export default function LoginPage() {
         <p className="mt-8 text-center text-sm text-gray-600">
           Don't have an account?{' '}
           <a
-            href="/register"
+            href="/auth/register"
             className="font-semibold text-indigo-600 hover:text-indigo-500 transition duration-150"
           >
             Sign up

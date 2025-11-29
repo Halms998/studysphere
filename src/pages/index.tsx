@@ -78,7 +78,7 @@ export default function HomePage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push('/login')}
+            onClick={() => router.push('/auth/login')}
             style={{
               padding: '10px 24px',
               background: 'transparent',
@@ -95,7 +95,7 @@ export default function HomePage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push('/register')}
+            onClick={() => router.push('/auth/register')}
             style={{
               padding: '10px 24px',
               background: '#000',
@@ -150,7 +150,7 @@ export default function HomePage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push('/register')}
+            onClick={() => router.push('/auth/register')}
             style={{
               padding: '18px 48px',
               fontSize: '1.2rem',
@@ -261,7 +261,7 @@ export default function HomePage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push('/register')}
+            onClick={() => router.push('/auth/register')}
             style={{
               padding: '16px 40px',
               fontSize: '1.1rem',

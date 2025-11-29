@@ -24,7 +24,7 @@ export default function QuizzesPage() {
   useEffect(() => {
     const fetchQuizzes = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return router.push('/login');
+      if (!session) return router.push('/auth/login');
       const token = session.access_token;
 
       let url = '/api/quizzes';
