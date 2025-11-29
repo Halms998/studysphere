@@ -1,11 +1,5 @@
 import { NextApiRequest } from 'next';
 import { supabase } from '@/lib/supabaseClient';
-import { 
-  LoginCredentials, 
-  RegisterCredentials, 
-  AuthResponse, 
-  AuthSession 
-} from '@/types/auth.types';
 
 export class AuthService {
   // ===== EXISTING METHODS - DO NOT CHANGE =====
@@ -124,3 +118,16 @@ export class AuthService {
     }
   }
 }
+
+
+// services/SubjectService.ts
+export class SubjectService {
+  async getSubjects() {
+    return supabaseAdmin.from('subjects').select('id,name,description,created_at');
+  }
+
+  async getTopics(subjectIds: string[]) {
+    return supabaseAdmin.from('topics').select('id,name,description,subject_id').in('subject_id', subjectIds);
+  }
+}
+

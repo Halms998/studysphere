@@ -20,6 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from('subjects')
         .select('id,name,description,created_at');
 
+      console.log('Fetched subjects:', subjects);
+
       if (error) return res.status(500).json({ error: error.message });
 
       // fetch topics for the subjects
@@ -41,3 +43,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: e.message || 'Internal server error' });
   }
 }
+
+
