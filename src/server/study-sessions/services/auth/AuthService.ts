@@ -5,7 +5,6 @@ import {
   RegisterCredentials, 
   AuthResponse, 
   AuthSession 
-  
 } from '@/types/auth.types';
 
 export class AuthService {
