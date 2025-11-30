@@ -23,12 +23,12 @@ export function useAuth(requireAuth: boolean = true): UseAuthReturn {
         if (session?.user) {
           setUser(session.user);
         } else if (requireAuth) {
-          router.push('/login');
+          router.push('/auth/login');
         }
       } catch (error) {
         console.error('Auth check error:', error);
         if (requireAuth) {
-          router.push('/login');
+          router.push('/auth/login');
         }
       } finally {
         setLoading(false);
@@ -44,7 +44,7 @@ export function useAuth(requireAuth: boolean = true): UseAuthReturn {
       } else {
         setUser(null);
         if (requireAuth) {
-          router.push('/login');
+          router.push('/auth/login');
         }
       }
     });
@@ -56,7 +56,7 @@ export function useAuth(requireAuth: boolean = true): UseAuthReturn {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push('/auth/login');
   };
 
   return { user, loading, signOut };

@@ -19,7 +19,7 @@ export default function QuizDetailPage() {
     if (!id) return;
     const fetchQuiz = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return router.push('/login');
+      if (!session) return router.push('/auth/login');
       const token = session.access_token;
       const resp = await fetch(`/api/quizzes/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       if (!resp.ok) return;
@@ -37,7 +37,7 @@ export default function QuizDetailPage() {
 
   const handleSubmit = async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return router.push('/login');
+    if (!session) return router.push('/auth/login');
     const token = session.access_token;
     const payload = {
       answers: Object.entries(answers).map(([question_id, selected_option_id]) => ({ question_id, selected_option_id }))

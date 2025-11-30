@@ -35,7 +35,7 @@ export default function StudySessionDetailPage() {
       const { data: { session: authSession } } = await supabase.auth.getSession();
       
       if (!authSession) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -74,7 +74,7 @@ export default function StudySessionDetailPage() {
       const { data: { session: authSession } } = await supabase.auth.getSession();
       
       if (!authSession) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -106,7 +106,7 @@ export default function StudySessionDetailPage() {
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession();
       if (!authSession) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -132,7 +132,7 @@ export default function StudySessionDetailPage() {
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession();
       if (!authSession) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -238,7 +238,7 @@ export default function StudySessionDetailPage() {
                       onClick={async () => {
                         try {
                           const { data: { session: authSession } } = await supabase.auth.getSession();
-                          if (!authSession) return router.push('/login');
+                          if (!authSession) return router.push('/auth/login');
 
                           // Record attendance when video meeting begins
                           await supabase
