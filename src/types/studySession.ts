@@ -28,3 +28,9 @@ export interface AttendanceRecord {
   // optional joined student info (populated by API)
   student?: { name?: string } | null;
 }
+export interface StudySessionDetails {
+  session: StudySession;
+  host: { name: string };
+  video_conferences: VideoConference[];
+  attendance_records: AttendanceRecord[];
+}

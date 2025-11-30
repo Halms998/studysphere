@@ -1,5 +1,7 @@
 import { PomodoroRepository } from '../repositories/PomodoroRepository';
-
+import { IPomodoroRepository } from '../repositories/interfaces/IPomodoroRepository'; 
+// Import the type definition for safety, assuming it's exported from the repo file
+import { PomodoroSession } from '../repositories/PomodoroRepository';
 export interface CreatePomodoroData {
   session_id: string;
   work_duration: number;
@@ -7,7 +9,10 @@ export interface CreatePomodoroData {
 }
 
 export class PomodoroService {
-  constructor(private pomodoroRepo = new PomodoroRepository()) {}
+  constructor(
+        // Dependency injection: Type the dependency using the INTERFACE
+    private pomodoroRepo: IPomodoroRepository = new PomodoroRepository()
+  ) {}
 
   async createPomodoroSession(data: CreatePomodoroData) {
     const now = new Date().toISOString();
