@@ -1,5 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
+import { FlashcardRepository } from '../../../server/flashcards/repositories/FlashcardRepository';
+import { FlashcardService } from '../../../server/flashcards/services/FlashcardService';
+
+const repository = new FlashcardRepository();
+const service = new FlashcardService(repository);
 
 // GET /api/flashcards?deckId=...&due=true
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,38 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (authError || !user) return res.status(401).json({ error: 'Invalid token' });
 
     const { deckId, due } = req.query;
+    const dueOnly = String(due) === 'true';
 
-    let deckIds: string[] = [];
-
-    if (deckId) {
-      deckIds = Array.isArray(deckId) ? deckId : [String(deckId)];
-    } else {
-      // get decks created by user
-      const { data: decks } = await supabaseAdmin
-        .from('flashcard_decks')
-        .select('id')
-        .eq('created_by', user.id);
-      deckIds = Array.isArray(decks) ? (decks as any[]).map(d => d.id) : [];
-    }
-
-    if (!deckIds || deckIds.length === 0) {
-      return res.status(200).json({ flashcards: [] });
-    }
-
-    let query = supabaseAdmin
-      .from('flashcards')
-      .select('*')
-      .in('deck_id', deckIds);
-
-    if (String(due) === 'true') {
-      query = query.lte('next_review_at', new Date().toISOString());
-    }
-
-    const { data: flashcards, error: fetchErr } = await query;
-    if (fetchErr) {
-      console.error('Failed to fetch flashcards:', fetchErr);
-      return res.status(500).json({ error: 'Failed to fetch flashcards' });
-    }
+    const flashcards = await service.getFlashcards(user.id, deckId as string | string[], dueOnly);
 
     return res.status(200).json({ flashcards });
   } catch (e) {

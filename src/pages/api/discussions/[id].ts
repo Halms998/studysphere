@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { DiscussionRepository } from '@/server/discussions/repositories/DiscussionRepository';
+import { GamificationRepository } from '@/server/gamification/repositories/GamificationRepository';
+import { DiscussionService } from '@/server/discussions/services/DiscussionService';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const repository = new DiscussionRepository();
+const gamificationRepo = new GamificationRepository();
+const service = new DiscussionService(repository, gamificationRepo);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { query } = req;
@@ -19,29 +21,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { data, error } = await supabaseAdmin
-        .from('discussions')
-        .select('*, author:students(name)')
-        .eq('id', id)
-        .single();
-
-      if (error) return res.status(500).json({ error: error.message });
+      const data = await service.getDiscussionById(id);
+      if (!data) return res.status(404).json({ error: 'Discussion not found' });
       return res.status(200).json(data);
     }
 
     if (req.method === 'DELETE') {
-      // Only author (or admin logic if added) can delete
-      // Fetch discussion to check owner
-      const { data: disc, error: discErr } = await supabaseAdmin.from('discussions').select('author_id').eq('id', id).single();
-      if (discErr || !disc) return res.status(404).json({ error: 'Discussion not found' });
-
-      if (disc.author_id !== user.id) {
-        return res.status(403).json({ error: 'Forbidden' });
+      try {
+        await service.deleteDiscussion(id, user.id);
+        return res.status(204).end();
+      } catch (e: any) {
+        if (e.message === 'Discussion not found') return res.status(404).json({ error: e.message });
+        if (e.message === 'Forbidden') return res.status(403).json({ error: e.message });
+        throw e;
       }
-
-      const { error: delErr } = await supabaseAdmin.from('discussions').delete().eq('id', id);
-      if (delErr) return res.status(500).json({ error: delErr.message });
-      return res.status(204).end();
     }
 
     // POST for answers moved to /api/discussion-answers

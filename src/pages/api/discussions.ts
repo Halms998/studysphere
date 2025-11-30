@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { DiscussionRepository } from '@/server/discussions/repositories/DiscussionRepository';
+import { GamificationRepository } from '@/server/gamification/repositories/GamificationRepository';
+import { DiscussionService } from '@/server/discussions/services/DiscussionService';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const repository = new DiscussionRepository();
+const gamificationRepo = new GamificationRepository();
+const service = new DiscussionService(repository, gamificationRepo);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const authHeader = req.headers.authorization;
@@ -17,12 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { data, error } = await supabaseAdmin
-        .from('discussions')
-        .select('*, author:students(name), discussion_answers(*)')
-        .order('created_at', { ascending: false });
-
-      if (error) return res.status(500).json({ error: error.message });
+      const data = await service.getAllDiscussions();
       return res.status(200).json(data);
     }
 
@@ -30,29 +27,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { title, body } = req.body;
       if (!title || !title.trim()) return res.status(400).json({ error: 'Title is required' });
 
-      const { data, error } = await supabaseAdmin
-        .from('discussions')
-        .insert({ title: title.trim(), body: body || null, author_id: user.id })
-        .select()
-        .single();
-
-      if (error) return res.status(500).json({ error: error.message });
-      // Award participation points for creating a question
-      try {
-        const { data: studentData, error: studentErr } = await supabaseAdmin
-          .from('students')
-          .select('points')
-          .eq('id', user.id)
-          .single();
-
-        if (!studentErr && studentData) {
-          const current = Number(studentData.points || 0);
-          const newPoints = current + 10; // +10 points for posting a question
-          await supabaseAdmin.from('students').update({ points: newPoints }).eq('id', user.id);
-        }
-      } catch (e) {
-        console.error('Failed to award points for question:', e);
-      }
+      const data = await service.createDiscussion({
+        title: title.trim(),
+        body: body || null,
+        author_id: user.id
+      });
 
       return res.status(201).json(data);
     }

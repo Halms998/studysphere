@@ -1,15 +1,11 @@
-import { supabase } from '@/lib/supabaseClient';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { BaseRepository } from './base/BaseRepository';
+import { LeaderboardEntry } from '../types/leaderboard';
+import { ILeaderboardRepository } from './interfaces/ILeaderboardRepository';
 
-export interface LeaderboardEntry {
-  id: string;
-  name: string;
-  points: number;
-}
-
-export class LeaderboardRepository extends BaseRepository<LeaderboardEntry> {
+export class LeaderboardRepository extends BaseRepository<LeaderboardEntry> implements ILeaderboardRepository {
   constructor() {
-    super(supabase, 'students');
+    super(supabaseAdmin, 'students');
   }
 
   async fetchTopEntries(limit: number = 200): Promise<LeaderboardEntry[]> {
