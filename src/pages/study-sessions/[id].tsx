@@ -235,36 +235,24 @@ export default function StudySessionDetailPage() {
                 {userStatus === 'joined' ? (
                   <div className="text-center">
                     <button
-                      onClick={async () => {
-                        try {
-                          const { data: { session: authSession } } = await supabase.auth.getSession();
-                          if (!authSession) return router.push('/auth/login');
-
-                          // Record attendance when video meeting begins
-                          await supabase
-                            .from('attendance_records')
-                            .upsert(
-                              {
-                                session_id: session.id,
-                                student_id: authSession.user.id,
-                                join_time: new Date().toISOString(),
-                                leave_time: null
-                              },
-                              {
-                                onConflict: 'session_id,student_id'
-                              }
-                            );
-
-                          // Open Jitsi call
-                          const roomName = `session-${session.id}`;
-                          const userDisplayName = currentUser?.email?.split('@')[0] || 'Guest';
-                          const url = `https://meet.jit.si/${roomName}#userInfo.displayName=${encodeURIComponent(userDisplayName)}`;
-                          window.open(url, '_blank');
-                        } catch (err) {
-                          console.error("Error starting meeting attendance", err);
-                          setError("Failed to join video call");
-                        }
-                      }}
+                      // ... inside the <button onClick={async () => { ... }}
+onClick={async () => {
+    try {
+        // handleJoin() handles authentication, API call, and error handling.
+        await handleJoin(); 
+        
+        // Only open the Jitsi link if handleJoin was successful.
+        const roomName = `session-${session.id}`;
+        const userDisplayName = currentUser?.email?.split('@')[0] || 'Guest';
+        const url = `https://meet.jit.si/${roomName}#userInfo.displayName=${encodeURIComponent(userDisplayName)}`;
+        window.open(url, '_blank');
+    } catch (err) {
+        // The error is already caught by handleJoin and set to state,
+        // but we keep this log/set error for the Jitsi logic itself.
+        console.error("Error starting video call", err);
+        setError("Failed to open video call");
+    }
+}}
                       className="bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-600 mb-4"
                     >
                       Join Video Call

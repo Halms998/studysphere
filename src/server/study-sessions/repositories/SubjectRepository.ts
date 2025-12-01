@@ -2,6 +2,7 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { BaseRepository } from './base/BaseRepository';
+import { ISubjectRepository } from './interfaces/ISubjectRepository';
 
 export interface Subject {
   id: string;
@@ -17,7 +18,7 @@ export interface Topic {
   subject_id: string;
 }
 
-export class SubjectRepository extends BaseRepository<Subject> {
+export class SubjectRepository extends BaseRepository<Subject> implements ISubjectRepository {
   constructor() {
     super(supabase, 'subjects');
   }

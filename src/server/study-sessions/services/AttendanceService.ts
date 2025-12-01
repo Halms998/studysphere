@@ -1,7 +1,7 @@
 import { AttendanceRepository } from '../repositories/AttendanceRepository';
-
+import { IAttendanceRepository } from '../repositories/interfaces/IAttendanceRepository';
 export class AttendanceService {
-  constructor(private attendanceRepo = new AttendanceRepository()) {}
+  constructor(private attendanceRepo: IAttendanceRepository = new AttendanceRepository()) {}
 
   async joinSession(sessionId: string, studentId: string) {
     const now = new Date().toISOString();

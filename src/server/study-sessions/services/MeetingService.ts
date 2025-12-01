@@ -1,7 +1,12 @@
 import { MeetingRepository } from '../repositories/MeetingRepository';
+import { IMeetingRepository } from '../repositories/interfaces/IMeetingRepository';
 
 export class MeetingService {
-  constructor(private meetingRepo = new MeetingRepository()) {}
+  constructor(
+        //  Type the dependency using the INTERFACE (DIP)
+    private meetingRepo: IMeetingRepository = new MeetingRepository()
+    // private readonly meetingRepo: IMeetingRepository = new MeetingRepository()
+  ) {}
 
   async createMeeting(sessionId: string, meetingUrl: string) {
     return this.meetingRepo.createMeeting(sessionId, meetingUrl);

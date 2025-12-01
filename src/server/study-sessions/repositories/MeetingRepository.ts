@@ -1,8 +1,8 @@
 import { supabase } from '@/lib/supabaseClient';
 import { BaseRepository } from './base/BaseRepository';
 import { VideoConference } from '../types';
-
-export class MeetingRepository extends BaseRepository<VideoConference> {
+import { IMeetingRepository } from './interfaces/IMeetingRepository';
+export class MeetingRepository extends BaseRepository<VideoConference> implements IMeetingRepository {
   constructor() {
     super(supabase, 'video_conferences');
   }

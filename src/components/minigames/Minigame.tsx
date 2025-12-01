@@ -3,7 +3,7 @@ import ReactionTimeMinigame from './ReactionTimeMinigame';
 import QuizMinigame from './QuizMinigame';
 import BubbleMinigame from './BubbleMinigame';
 import ImageReactionMinigame from './ImageReactionMinigame';
-import imageReactionCategories from '../data/imageReactionCategories';
+import imageReactionCategories from '../../data/imageReactionCategories';
 
 type GameKey = 'reaction' | 'quiz' | 'bubble' | 'image';
 
@@ -92,7 +92,6 @@ export default function Minigame() {
               <ReactionTimeMinigame
                 onClose={() => setActive(null)}
                 onComplete={(summary) => {
-                  // store average ms as last score
                   setLastScore((s) => ({ ...s, reaction: summary.avgMs }));
                 }}
               />

@@ -1,28 +1,11 @@
-// // services/SubjectService.ts
-// import { SubjectRepository } from '../repositories/SubjectRepository';
-
-// export class SubjectService {
-//   constructor(private repository: SubjectRepository) {}
-
-//   async getSubjectsWithTopics() {
-//     const { data: subjects, error } = await this.repository.fetchSubjects();
-//     if (error) throw new Error('Failed to fetch subjects');
-
-//     const subjectIds = (subjects || []).map((s: any) => s.id);
-//     const { data: topics } = await this.repository.fetchTopics(subjectIds);
-
-//     return (subjects || []).map((s: any) => ({
-//       ...s,
-//       topics: (topics || []).filter((t) => t.subject_id === s.id),
-//     }));
-//   }
-// }
 
 // services/SubjectService.ts
 import { SubjectRepository, Subject, Topic } from '../repositories/SubjectRepository';
+import { ISubjectRepository } from '../repositories/interfaces/ISubjectRepository';
 
 export class SubjectService {
-  constructor(private repository: SubjectRepository) {}
+  //Dependency Injection using INTERFACE
+  constructor(private repository:ISubjectRepository=new SubjectRepository) {}
 
   async getSubjectsWithTopics(): Promise<Subject[]> {
     try {

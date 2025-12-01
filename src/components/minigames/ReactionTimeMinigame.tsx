@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { getBenchmarkMs, benchmarkClass } from '../lib/benchmark';
-import useRandomDelay from '../hooks/useRandomDelay';
+import { getBenchmarkMs, benchmarkClass } from '../../lib/benchmark';
+import useRandomDelay from '../../hooks/useRandomDelay';
 
 // Notes on applied SOLID principles in this component:
 // - DIP (Dependency Inversion): benchmark generation and color mapping were

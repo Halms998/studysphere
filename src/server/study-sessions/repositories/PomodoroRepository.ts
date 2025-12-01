@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { BaseRepository } from './base/BaseRepository';
+import { IPomodoroRepository } from './interfaces/IPomodoroRepository';
 
 export interface PomodoroSession {
   id: string;
@@ -12,7 +13,7 @@ export interface PomodoroSession {
   created_at: string;
 }
 
-export class PomodoroRepository extends BaseRepository<PomodoroSession> {
+export class PomodoroRepository extends BaseRepository<PomodoroSession> implements IPomodoroRepository {
   constructor() {
     super(supabase, 'pomodoro_sessions');
   }
