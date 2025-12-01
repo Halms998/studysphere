@@ -1,5 +1,16 @@
 import { IFlashcardRepository } from '../repositories/interfaces/IFlashcardRepository';
 
+/**
+ * SOLID Principles Applied:
+ * 
+ * 1. Single Responsibility Principle (SRP):
+ *    - ONLY handles flashcard business logic (resolving deck IDs, filtering)
+ *    - Delegates database operations to FlashcardRepository
+ * 
+ * 2. Dependency Inversion Principle (DIP):
+ *    - Depends on IFlashcardRepository interface, not concrete FlashcardRepository
+ *    - Enables easy testing with mock repositories
+ */
 export class FlashcardService {
   constructor(private repository: IFlashcardRepository) {}
 

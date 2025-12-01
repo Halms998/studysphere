@@ -1,6 +1,22 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { IGamificationRepository } from './interfaces/IGamificationRepository';
 
+/**
+ * SOLID Principles Applied:
+ * 
+ * 1. Single Responsibility Principle (SRP):
+ *    - ONLY handles awarding points to students
+ *    - Separated from DiscussionRepository (which handles discussion data)
+ *    - This is a key example of SRP: gamification logic is independent
+ * 
+ * 2. Dependency Inversion Principle (DIP):
+ *    - Implements IGamificationRepository interface
+ *    - Services depend on the interface, not this concrete class
+ * 
+ * Why this matters:
+ *    - If you add badges, levels, or change how points work,
+ *      you only modify this file, not DiscussionRepository
+ */
 export class GamificationRepository implements IGamificationRepository {
   constructor(private supabase = supabaseAdmin) {}
 

@@ -3,6 +3,17 @@ import { BaseRepository } from '../../study-sessions/repositories/base/BaseRepos
 import { Discussion, DiscussionAnswer, CreateDiscussionDTO, CreateAnswerDTO } from '../types';
 import { IDiscussionRepository } from './interfaces/IDiscussionRepository';
 
+/**
+ * SOLID Principles Applied:
+ * 
+ * 1. Single Responsibility Principle (SRP): 
+ *    - This repository ONLY handles database operations for discussions and answers
+ *    - It does NOT handle gamification (points) - that's in GamificationRepository
+ * 
+ * 2. Dependency Inversion Principle (DIP):
+ *    - Implements IDiscussionRepository interface
+ *    - Higher-level modules (Services) depend on the interface, not this concrete class
+ */
 export class DiscussionRepository extends BaseRepository<Discussion> implements IDiscussionRepository {
   constructor() {
     super(supabaseAdmin, 'discussions');
@@ -67,7 +78,7 @@ export class DiscussionRepository extends BaseRepository<Discussion> implements 
   async getAnswerById(id: string): Promise<DiscussionAnswer | null> {
     const { data, error } = await this.supabase
       .from('discussion_answers')
-      .select('author_id')
+      .select('*')
       .eq('id', id)
       .single();
 

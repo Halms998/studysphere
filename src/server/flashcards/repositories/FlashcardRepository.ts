@@ -3,6 +3,17 @@ import { BaseRepository } from '../../study-sessions/repositories/base/BaseRepos
 import { Flashcard, FlashcardDeck } from '../types';
 import { IFlashcardRepository } from './interfaces/IFlashcardRepository';
 
+/**
+ * SOLID Principles Applied:
+ * 
+ * 1. Single Responsibility Principle (SRP):
+ *    - ONLY handles database operations for flashcards and decks
+ *    - Does NOT handle spaced repetition logic or review scheduling
+ * 
+ * 2. Dependency Inversion Principle (DIP):
+ *    - Implements IFlashcardRepository interface
+ *    - FlashcardService depends on the interface, not this concrete class
+ */
 export class FlashcardRepository extends BaseRepository<Flashcard> implements IFlashcardRepository {
   constructor() {
     super(supabaseAdmin, 'flashcards');

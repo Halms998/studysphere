@@ -2,6 +2,23 @@ import { IDiscussionRepository } from '../repositories/interfaces/IDiscussionRep
 import { IGamificationRepository } from '../../gamification/repositories/interfaces/IGamificationRepository';
 import { CreateDiscussionDTO, CreateAnswerDTO } from '../types';
 
+/**
+ * SOLID Principles Applied:
+ * 
+ * 1. Single Responsibility Principle (SRP):
+ *    - Only handles business logic for discussions
+ *    - Delegates database operations to DiscussionRepository
+ *    - Delegates point awarding to GamificationRepository
+ * 
+ * 2. Dependency Inversion Principle (DIP):
+ *    - Depends on IDiscussionRepository interface, not concrete DiscussionRepository
+ *    - Depends on IGamificationRepository interface, not concrete GamificationRepository
+ *    - This allows easy testing with mock repositories
+ * 
+ * 3. Open/Closed Principle (OCP):
+ *    - Can extend functionality by creating new repository implementations
+ *    - Service code doesn't need to change when adding caching, logging, etc.
+ */
 export class DiscussionService {
   constructor(
     private repository: IDiscussionRepository,

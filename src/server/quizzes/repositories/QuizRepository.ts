@@ -3,6 +3,17 @@ import { BaseRepository } from '../../study-sessions/repositories/base/BaseRepos
 import { Quiz, Topic } from '../types';
 import { IQuizRepository } from './interfaces/IQuizRepository';
 
+/**
+ * SOLID Principles Applied:
+ * 
+ * 1. Single Responsibility Principle (SRP):
+ *    - ONLY handles database operations for quizzes and topics
+ *    - Does NOT handle quiz validation, scoring, or business logic
+ * 
+ * 2. Dependency Inversion Principle (DIP):
+ *    - Implements IQuizRepository interface
+ *    - QuizService depends on the interface, not this concrete class
+ */
 export class QuizRepository extends BaseRepository<Quiz> implements IQuizRepository {
   constructor() {
     super(supabaseAdmin, 'quizzes');
@@ -11,7 +22,7 @@ export class QuizRepository extends BaseRepository<Quiz> implements IQuizReposit
   async getQuizzes(topicId?: string, subjectId?: string): Promise<Quiz[]> {
     let query = this.supabase
       .from(this.tableName)
-      .select('id,title,description,created_at,topic_id')
+      .select('id,title,description,created_by,created_at,topic_id')
       .order('created_at', { ascending: false });
 
     if (topicId) {
