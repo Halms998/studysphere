@@ -1,7 +1,7 @@
 # StudySphere
 
 A student-focused productivity platform built with Next.js, TypeScript, Supabase, and Tailwind CSS.
-Forked from 
+Forked from https://github.com/quicklearner404/studysphere 
 <img width="1600" height="812" alt="image" src="https://github.com/user-attachments/assets/95d086a3-c8f2-4844-b25e-cd728a657795" />
 
 ## Features
